@@ -1,65 +1,88 @@
-# Qwik City App ⚡️
+# Workaround to get Qwik running in Appwrite Sites
 
-- [Qwik Docs](https://qwik.dev/)
-- [Discord](https://qwik.dev/chat)
-- [Qwik GitHub](https://github.com/QwikDev/qwik)
-- [@QwikDev](https://twitter.com/QwikDev)
-- [Vite](https://vitejs.dev/)
+## Setup 
+Setup your project as followed:
 
----
-
-## Project Structure
-
-This project is using Qwik with [QwikCity](https://qwik.dev/qwikcity/overview/). QwikCity is just an extra set of tools on top of Qwik to make it easier to build a full site, including directory-based routing, layouts, and more.
-
-Inside your project, you'll see the following directory structure:
-
-```
-├── public/
-│   └── ...
-└── src/
-    ├── components/
-    │   └── ...
-    └── routes/
-        └── ...
+### Directory
+Standard stuff going on here. Create a folder and `cd` into it.
+```bash
+mkdir qwik-appwrite-proof-of-concept
+cd qwik-appwrite-proof-of-concept/
 ```
 
-- `src/routes`: Provides the directory-based routing, which can include a hierarchy of `layout.tsx` layout files, and an `index.tsx` file as the page. Additionally, `index.ts` files are endpoints. Please see the [routing docs](https://qwik.dev/qwikcity/routing/overview/) for more info.
-
-- `src/components`: Recommended directory for components.
-
-- `public`: Any static assets, like images, can be placed in the public directory. Please see the [Vite public directory](https://vitejs.dev/guide/assets.html#the-public-directory) for more info.
-
-## Add Integrations and deployment
-
-Use the `npm run qwik add` command to add additional integrations. Some examples of integrations includes: Cloudflare, Netlify or Express Server, and the [Static Site Generator (SSG)](https://qwik.dev/qwikcity/guides/static-site-generation/).
-
-```shell
-npm run qwik add # or `yarn qwik add`
+### Initialization
+This is also standard. I just initialize the new project as described.
+```bash
+npm create qwik@latest
 ```
 
-## Development
+#### Output
+┌  Let's create a  Qwik App  ✨ (v1.17.2)
+│
+◇  Where would you like to create your new project? (Use '.' or './' for current directory)
+│  .
+│
+●  Creating new project in  /home/aliyss/qwik-appwrite-proof-of-concept  ... 🐇
+│
+◇  Select a starter
+│  Empty App (Qwik City + Qwik)
+│
+◇  Would you like to install npm dependencies?
+│  Yes
+│
+◇  Initialize a new git repository?
+│  Yes
+│
+◇  Finishing the install. Wanna hear a joke?
+│  Yes
 
-Development mode uses [Vite's development server](https://vitejs.dev/). The `dev` command will server-side render (SSR) the output during development.
-
-```shell
-npm start # or `yarn start`
+### Deployment Configuration
+Here is where we configure qwik to use fastify. Accept all blindly as you and I usually do.
+```bash
+npm run qwik add fastify
 ```
 
-> Note: during dev mode, Vite may request a significant number of `.js` files. This does not represent a Qwik production build.
+## Setup after Setup
+Now we want to actually have the output be usable by appwrite.
 
-## Preview
+### Postbuild Script
+Check out the file: [postbuild-astro-mimic.js](./scripts/postbuild-astro-mimic.js). I have no clue if all of the files it creates are required, but at this point I got tired so I just created whatever I thought worked.
 
-The preview command will create a production build of the client modules, a production build of `src/entry.preview.tsx`, and run a local server. The preview server is only for convenience to preview a production build locally and should not be used as a production server.
-
-```shell
-npm run preview # or `yarn preview`
+### Postbuild package.json
+Add the execution of the `postbuild-astro-mimic.js` in the postbuild of your [package.json](./package.json). It should now look something like this.
+```json
+{ 
+    "scripts": {
+        "build": "qwik build",
+        "build.client": "vite build",
+        "build.preview": "vite build --ssr src/entry.preview.tsx",
+        "build.server": "qwik check-client src dist && vite build -c adapters/fastify/vite.config.ts",
+        "postbuild": "node scripts/postbuild-astro-mimic.js",
+        "build.types": "tsc --incremental --noEmit",
+        "deploy": "echo 'Run \"npm run qwik add\" to install a server adapter'",
+        "dev": "vite --mode ssr",
+        "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
+        "fmt": "prettier --write .",
+        "fmt.check": "prettier --check .",
+        "lint": "eslint \"src/**/*.ts*\"",
+        "preview": "qwik build preview && vite preview --open",
+        "serve": "node server/entry.fastify",
+        "start": "vite --open --mode ssr",
+        "qwik": "qwik"
+    }
+}
 ```
+## Setup of Appwrite
 
-## Production
+### Build settings
+Select the following:
 
-The production build will generate client and server modules by running both client and server build commands. The build command will use Typescript to run a type check on the source code.
+- Framework: `Astro`
+    - `Server side rendering`
+- Settings
+    - Install command: `npm install`
+    - Build command: `npm run build`
+    - Output directory: `./dist`
 
-```shell
-npm run build # or `yarn build`
-```
+### Runtime settings
+I currently have `Node-22` running. I think this is the default.
