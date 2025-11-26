@@ -1,5 +1,27 @@
 # Workaround to get Qwik running in Appwrite Sites
 
+## Documentation of the Process
+
+### Figuring out what is called for deployment
+1. [frameworks.php](https://github.com/appwrite/appwrite/blob/8a555fd294307a746f4256e889fedc99b0c72444/app/config/frameworks.php) is the file that is being called for the deployment.
+2. After checking the [helpers](https://github.com/open-runtimes/open-runtimes/tree/d2d729360823f4b4c6b9a706b64901dc0d22e75f/runtimes/node/versions/latest/helpers) folders, I opted for astro since it had a minimal setup to run.
+
+### bundle.sh
+1. The [bundle.sh](https://github.com/open-runtimes/open-runtimes/blob/d2d729360823f4b4c6b9a706b64901dc0d22e75f/runtimes/node/versions/latest/helpers/astro/bundle.sh) basically copies over the required files for everything to run as I see it. I had to take following into consideration:
+    - ./dist/astro.config.mjs exists (reason following)
+    - ./dist/server/entry.mjs exists (reason following)
+    - ./dist/server is within the same folder as client (in this case dist from qwik). If ./server is kept on the top level the `mv /usr/local/build/node_modules/ ./node_modules/` fails.
+2. astro.config.mjs and entry.mjs exists
+    - Reasoning is for Appwrite to correctly identify SSR. We successfully therefore circumvent this this line: [Builds.php](https://github.com/appwrite/appwrite/blob/b7604a5742d63863fc0ec00255d26b02eb858614/src/Appwrite/Platform/Modules/Functions/Workers/Builds.php#L891).
+    - Since entry.mjs exists this now correctly works.
+    - For more info check out: [Utopia/Rendering.php](https://github.com/utopia-php/detector/blob/main/src/Detector/Rendering.php).
+
+### server.sh
+1. The [server.sh](https://github.com/open-runtimes/open-runtimes/blob/bc299e344becac7a6b3458f05d9c18c39b259002/runtimes/node/versions/latest/helpers/astro/server.sh) runs the start command.
+    - by default this is `node ./server.mjs`
+    - since this doesn't exist of course and isn't what we want we use the `OPEN_RUNTIMES_START_COMMAND` to bypass it and run with `node server/entry.fastify`.
+
+
 ## Setup 
 Setup your project as followed:
 
@@ -42,7 +64,7 @@ Here is where we configure qwik to use fastify. Accept all blindly as you and I 
 npm run qwik add fastify
 ```
 
-## Setup after Setup
+## Postbuild Setup 
 Now we want to actually have the output be usable by appwrite.
 
 ### Postbuild Script
@@ -86,3 +108,8 @@ Select the following:
 
 ### Runtime settings
 I currently have `Node-22` running. I think this is the default.
+
+### Environment variables
+
+- OPEN_RUNTIMES_START_COMMAND: `node server/entry.fastify`
+
