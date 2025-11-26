@@ -39,6 +39,7 @@ npm create qwik@latest
 ```
 
 #### Output
+```md
 ┌  Let's create a  Qwik App  ✨ (v1.17.2)
 │
 ◇  Where would you like to create your new project? (Use '.' or './' for current directory)
@@ -57,6 +58,7 @@ npm create qwik@latest
 │
 ◇  Finishing the install. Wanna hear a joke?
 │  Yes
+```
 
 ### Deployment Configuration
 Here is where we configure qwik to use fastify. Accept all blindly as you and I usually do.
