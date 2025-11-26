@@ -1,5 +1,7 @@
 # Workaround to get Qwik running in Appwrite Sites
 
+If you are using this template you don't care much about the below, jump straight to: [Appwrite Setup](#setup-of-appwrite).
+
 ## Documentation of the Process
 
 ### Figuring out what is called for deployment
